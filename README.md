@@ -5,7 +5,7 @@ The idea was to build an app that is private, secure, free and without any ads t
 
 ## To Do:
 Tasks to finish before 1.0 release:
-- [ ] Redesign some styles.
+- [x] Redesign some styles.
 - [ ] Add note encryption.
 
 Tasks to do in the future:
