@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Private Notes App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app-container">
+    <header>
+        <h1>Private Notes</h1>
+        <button id="new-note-button">New Note</button>
+    </header>
+    <div id="notes-list"></div>
+</div>
+
+<div id="note-modal" class="modal">
+    <div class="modal-content">
+        <span id="close-modal" class="close-button">&times;</span>
+        <input type="text" id="note-title-input" placeholder="Title" />
+        <textarea id="note-content-input" placeholder="Write your note here..."></textarea>
+        <button id="save-note-button">Save Note</button>
+        <button id="delete-note-button" style="display:none;">Delete Note</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
