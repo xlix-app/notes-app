@@ -3,7 +3,7 @@ name = "notes"
 version = "0.1.0"
 description = "Safe and private notepad."
 authors = ["FssAy"]
-license = ""
+license = "GPL-3.0-only"
 repository = ""
 edition = "2021"
 
