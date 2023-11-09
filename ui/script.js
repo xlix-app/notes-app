@@ -1,5 +1,8 @@
+const invoke = window.__TAURI_INTERNALS__.invoke;
+
 document.addEventListener('DOMContentLoaded', () => {
     const notesList = document.getElementById('notes-list');
+    const enterKeyButton = document.getElementById('enter-key-button');
     const newNoteButton = document.getElementById('new-note-button');
     const modal = document.getElementById('note-modal');
     const closeModal = document.getElementById('close-modal');
@@ -8,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const titleInput = document.getElementById('note-title-input');
     const contentInput = document.getElementById('note-content-input');
     let currentNoteIndex = null;
+
+    enterKey();
 
     newNoteButton.addEventListener('click', () => {
         currentNoteIndex = null;
@@ -22,14 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.style.display = 'none';
     });
 
-    saveNoteButton.addEventListener('click', () => {
+    saveNoteButton.addEventListener('click', async () => {
         const title = titleInput.value.trim();
         const content = contentInput.value.trim();
         if (title && content) {
             if (currentNoteIndex !== null) {
-                updateNote(currentNoteIndex, title, content);
+                await updateNote(currentNoteIndex, title, content);
             } else {
-                saveNewNote(title, content);
+                await saveNewNote(title, content);
             }
         }
         modal.style.display = 'none';
@@ -42,17 +47,53 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function saveNewNote(title, content) {
-        const notes = getNotes();
-        notes.push({ title, content });
-        localStorage.setItem('notes', JSON.stringify(notes));
+    enterKeyButton.addEventListener('click', enterKey);
+
+    function enterKey() {
+        let key = prompt("Please enter your secret key:", "");
+        if (key) {
+            invoke('aes_setup', { key: key });
+        }
         renderNotes();
     }
 
-    function updateNote(index, title, content) {
+    async function encrypt(msg) {
+        return await invoke('aes_encrypt', { msg: msg });
+    }
+
+    async function decrypt(buf) {
+        return await invoke('aes_decrypt', { buf: buf });
+    }
+
+    async function saveNewNote(title, content) {
+        title = await encrypt(title);
+        content = await encrypt(content);
+
+        if (!title || !content) {
+            alert("Key not entered!");
+            return;
+        }
+
+        const notes = getNotes();
+        notes.push({ title, content });
+        localStorage.setItem('notes', JSON.stringify(notes));
+
+        renderNotes();
+    }
+
+    async function updateNote(index, title, content) {
+        title = await encrypt(title);
+        content = await encrypt(content);
+
+        if (!title || !content) {
+            alert("Key not entered!");
+            return;
+        }
+
         const notes = getNotes();
         notes[index] = { title, content };
         localStorage.setItem('notes', JSON.stringify(notes));
+
         renderNotes();
     }
 
@@ -66,27 +107,30 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderNotes() {
         const notes = getNotes();
         notesList.innerHTML = '';
-        notes.forEach((note, index) => {
-            const noteElement = document.createElement('div');
-            noteElement.className = 'note';
-            noteElement.innerHTML = `
-                <h2 class="note-title">${note.title}</h2>
-                <p class="note-content">${note.content.substring(0, 150)}${note.content.length > 150 ? '...' : ''}</p>
-            `;
-            noteElement.addEventListener('click', () => {
-                currentNoteIndex = index;
-                titleInput.value = note.title;
-                contentInput.value = note.content;
-                deleteNoteButton.style.display = 'block';
-                modal.style.display = 'block';
-            });
-            notesList.appendChild(noteElement);
+        notes.forEach(async (note, index) => {
+            note.title = await decrypt(note.title);
+            note.content = await decrypt(note.content);
+
+            if (note.title && note.content) {
+                const noteElement = document.createElement('div');
+                noteElement.className = 'note';
+                noteElement.innerHTML = `
+                    <h2 class="note-title">${note.title}</h2>
+                    <p class="note-content">${note.content.substring(0, 150)}${note.content.length > 150 ? '...' : ''}</p>
+                `;
+                noteElement.addEventListener('click', () => {
+                    currentNoteIndex = index;
+                    titleInput.value = note.title;
+                    contentInput.value = note.content;
+                    deleteNoteButton.style.display = 'block';
+                    modal.style.display = 'block';
+                });
+                notesList.appendChild(noteElement);
+            }
         });
     }
 
     function getNotes() {
         return JSON.parse(localStorage.getItem('notes') || '[]');
     }
-
-    renderNotes();
 });

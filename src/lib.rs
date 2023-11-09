@@ -39,7 +39,11 @@ impl AppBuilder {
 
                 Ok(())
             })
-            .invoke_handler(tauri::generate_handler![])
+            .invoke_handler(tauri::generate_handler![
+                core::aes_setup,
+                core::aes_encrypt,
+                core::aes_decrypt,
+            ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
     }
