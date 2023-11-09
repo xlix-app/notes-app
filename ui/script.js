@@ -36,8 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 await saveNewNote(title, content);
             }
+            modal.style.display = 'none';
+        } else {
+            alert("Both fields are required!");
         }
-        modal.style.display = 'none';
     });
 
     deleteNoteButton.addEventListener('click', () => {
