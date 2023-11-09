@@ -1,3 +1,11 @@
-fn main() {
-    println!("Hello, world!");
+#![cfg_attr(
+all(not(debug_assertions), target_os = "windows"),
+windows_subsystem = "windows"
+)]
+
+
+use notes_lib::AppBuilder;
+
+pub fn main() {
+    AppBuilder::new().run();
 }
